@@ -42,10 +42,22 @@ vector<T> SET_OR(const vector<T>& a, const vector<T>& b) {
     return c;
 }
 
+// 集合作差
+template <class T>
+vector<T> SET_SUB(const vector<T>& a, const vector<T>& b) {
+    vector<T> c;
+    for (int i = 0, j = 0; i < a.size(); ++i) {
+        while (j < b.size() && b[j] < a[i]) j++;
+        if (j == b.size() || b[j] != a[i]) c.push_back(a[i]);
+    }
+    return c;
+}
+
 enum OP { AND,
           OR,
           LEFT_BRACKET,
-          RIGHT_BRACKET };
+          RIGHT_BRACKET,
+          SUB };
 
 template <class T>
 vector<T> op_work(const vector<T>& a, const vector<T>& b, const OP op) {
@@ -53,6 +65,8 @@ vector<T> op_work(const vector<T>& a, const vector<T>& b, const OP op) {
         return SET_AND(a, b);
     else if (op == OR)
         return SET_OR(a, b);
+    else if (OP == SUB)
+        return SET_SUB(a, b);
     std::cerr << "unknown operator" << '\n';
     return {};
 }
@@ -102,27 +116,31 @@ vector<index_t> query(const string& s) {
                 return {};
             };
             op_st.pop();
-        } else if (check_nxt(i, "and") || check_nxt(i, "AND") || check_nxt(i, "&&") || check_nxt(i, "&")) {
-            if (check_nxt(i, "and")) i += 3;
-            if (check_nxt(i, "AND")) i += 3;
-            if (check_nxt(i, "&&"))
+        } else if (check_nxt(i, "and") || check_nxt(i, "AND") || check_nxt(i, "&&") || check_nxt(i, "&") || check_nxt(i, "*")) {
+            if (check_nxt(i, "and") || check_nxt(i, "AND"))
+                i += 3;
+            else if (check_nxt(i, "&&"))
                 i += 2;
-            else if (check_nxt(i, "&"))
+            else
                 i += 1;
             op_st.push(AND);
-        } else if (check_nxt(i, "or") || check_nxt(i, "OR") || check_nxt(i, "||") || check_nxt(i, "|")) {
-            if (check_nxt(i, "or")) i += 2;
-            if (check_nxt(i, "OR")) i += 2;
-            if (check_nxt(i, "||"))
+        } else if (check_nxt(i, "or") || check_nxt(i, "OR") || check_nxt(i, "||") || check_nxt(i, "|") || check_nxt(i, "+")) {
+            if (check_nxt(i, "or") || check_nxt(i, "OR") || check_nxt(i, "||"))
                 i += 2;
-            else if (check_nxt(i, "|"))
+            else
                 i += 1;
-            while (op_st.size() && op_st.top() == AND) {
+            while (op_st.size() && (op_st.top() == AND || op_st.top() == SUB)) {
                 if (!pop_and_func()) {
                     return {};
                 };
             }
             op_st.push(OR);
+        } else if (check_nxt(i, "sub") || check_nxt(i, "SUB") || check_nxt(i, "-")) {
+            if (check_nxt(i, "sub") || check_nxt(i, "SUB"))
+                i += 3;
+            else
+                i += 1;
+            op_st.push(SUB);
         } else {
             int j = i + 1;
             while (j < s.size() && s[j] != ' ') j++;
@@ -143,5 +161,6 @@ vector<index_t> query(const string& s) {
     };
     return st.top();
 }
+
 } // namespace library
 #endif

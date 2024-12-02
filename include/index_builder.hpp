@@ -14,22 +14,23 @@ class index_builder {
     cppjieba::MixSegment seg;
     cppjieba::KeywordExtractor extractor;
     dict dic;
-    std::vector<std::string> books;
 
   public:
     index_t get_book_idx(const std::string& file_path);
+
     index_builder();
+
+    void init();
+
     static std::vector<std::string> tokenize(const std::string& s);
 
     void add(const std::string& word, index_t idx);
 
-    void add_book(const std::string& file_path);
+    void add_news(const std::string& line, index_t idx);
 
     void index_to_file() const;
 
     void news_offset_to_file(const std::string& news_path) const;
-
-    void books_to_file() const;
 
     void to_file() const;
 };

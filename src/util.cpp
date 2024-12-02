@@ -1,9 +1,13 @@
-#include "../include/util.hpp"
+#include "util.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <vector>
+
 namespace library {
+std::string news_path;
+using namespace boost::property_tree;
+
 std::string to_lower(const std::string& str) {
     std::string result;
     result.reserve(str.size());
@@ -26,20 +30,6 @@ u64 get_hash(const std::string& str) {
         ans = ans * BASE + ch;
     }
     return ans;
-}
-
-std::string get_book_path(int idx) {
-    std::ifstream offset_file(OFFSET_BOOK_NAME, std::ios::binary);
-    std::ifstream book_names(BOOK_NAMES);
-
-    offset_file.seekg(8 * idx, std::ios::beg);
-    u64 offset;
-    offset_file.read(reinterpret_cast<char*>(&offset), sizeof(offset));
-
-    book_names.seekg(offset, std::ios::beg);
-    std::string book_name;
-    book_names >> book_name;
-    return book_name;
 }
 
 // file 是由无数 [val(u64),offset(u64)] 这样结构单元构成
@@ -106,4 +96,23 @@ std::vector<index_t> query_word(const std::string& word) {
     return get_index_by_offset(offset);
 }
 
+ptree get_news(u32 idx) {
+    std::ifstream offset_file(NEWS_OFFSET_PATH, std::ios::binary);
+    offset_file.seekg(4 * idx, std::ios::beg);
+    u32 offset;
+    offset_file.read(reinterpret_cast<char*>(&offset), sizeof(offset));
+    std::ifstream news_file(news_path);
+    if (!news_file.is_open()) {
+        std::cerr << "unable to open file " << news_path << '\n';
+        exit(0);
+    }
+    news_file.seekg(offset);
+    std::string line;
+    std::getline(news_file, line);
+    ptree pt;
+    std::stringstream ss;
+    ss << line;
+    read_json(ss, pt);
+    return pt;
+}
 } // namespace library

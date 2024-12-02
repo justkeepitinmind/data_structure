@@ -29,3 +29,12 @@ set(SEARCH_SOURCES
 )
 
 add_executable(search_index ${SEARCH_SOURCES})
+
+
+set(GET_NEWS_SOURCES
+    src/get_news.cpp
+    src/util.cpp
+)
+
+add_executable(get_news ${GET_NEWS_SOURCES})
+

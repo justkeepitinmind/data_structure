@@ -1,14 +1,16 @@
 #include "index_builder.hpp"
 #include "util.hpp"
 #include <algorithm>
-#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <istream>
 #include <ostream>
+#include <string>
 #include <unordered_map>
 #include <vector>
+
 namespace library {
+
 const string ROOT_PATH = "../cppjieba/";
 const string DICT_PATH = ROOT_PATH + "dict/jieba.dict.utf8";
 const string HMM_MODEL_PATH = ROOT_PATH + "dict/hmm_model.utf8";
@@ -16,6 +18,26 @@ const string IDF_PATH = ROOT_PATH + "dict/idf.utf8";
 const string STOP_WORD_PATH = ROOT_PATH + "dict/stop_words.utf8";
 
 index_builder::index_builder() : seg(DICT_PATH, HMM_MODEL_PATH), extractor(DICT_PATH, HMM_MODEL_PATH, IDF_PATH, STOP_WORD_PATH) {}
+
+void index_builder::init() {
+    std::ofstream news_path_file(NEWS_PATH_FILE_PATH);
+    news_path_file << news_path;
+    news_offset_to_file(news_path);
+    std::ifstream news_file(news_path);
+    if (!news_file.is_open()) {
+        std::cerr << "unable to open the file" << news_path << '\n';
+        return;
+    }
+    std::string line;
+    index_t idx = 0;
+    while (news_file.good()) {
+        std::getline(news_file, line);
+        if (line.empty()) continue;
+        add_news(line, idx++);
+    }
+
+    news_file.close();
+}
 
 void index_builder::add(const std::string& word, index_t idx) {
     if (dic.find(word) == dic.end()) {
@@ -25,26 +47,17 @@ void index_builder::add(const std::string& word, index_t idx) {
     }
 }
 
-void index_builder::add_book(const std::string& file_path) {
-    index_t idx = get_book_idx(file_path);
-    std::ifstream ifs(file_path);
-    if (!ifs.is_open()) {
-        std::cerr << "Error opening file: " << std::strerror(errno) << std::endl;
-        return;
-    };
-    string doc;
-    doc << ifs;
-
+void index_builder::add_news(const std::string& news_line, index_t idx) {
     std::vector<std::string> words;
-    extractor.Extract(doc, words, 40);
+    ptree pt;
+    std::stringstream ss;
+    ss << news_line;
+    read_json(ss, pt);
+    string doc{pt.get<std::string>("content")};
+    extractor.Extract(news_line, words, 40);
     for (const std::string& word : words) {
         add(word, idx);
     }
-}
-
-index_t index_builder::get_book_idx(const std::string& file_path) {
-    books.push_back(file_path);
-    return books.size() - 1;
 }
 
 void index_builder::index_to_file() const {
@@ -65,7 +78,7 @@ void index_builder::index_to_file() const {
     std::ofstream index_file(INDEX_FILE_NAME, std::ios::binary);
 
     for (const auto& [hash_val, word] : f) {
-        std::cout << word << '\n';
+        // std::cout << word << '\n';
         const auto& list = dic.at(word);
         write_integer<u64>(offset_file, hash_val);
         write_integer<u64>(offset_file, index_file.tellp());
@@ -83,20 +96,24 @@ void index_builder::index_to_file() const {
     index_file.close();
 }
 
-void index_builder::books_to_file() const {
-    std::ofstream offset_file(OFFSET_BOOK_NAME, std::ios::binary);
-    std::ofstream book_names(BOOK_NAMES);
-
-    for (int i = 0; i < books.size(); ++i) {
-        write_integer<u64>(offset_file, book_names.tellp());
-        book_names << books.at(i) << " ";
+void index_builder::news_offset_to_file(const std::string& news_path) const {
+    std::ofstream offset_file(NEWS_OFFSET_PATH, std::ios::binary);
+    std::ifstream news_file(news_path);
+    if (!news_file.is_open()) {
+        std::cerr << "unable to open the file" << news_path << '\n';
+        return;
     }
+    std::string line;
+    while (news_file.good()) {
+        write_integer<u32>(offset_file, news_file.tellg());
+        std::getline(news_file, line);
+    }
+
+    news_file.close();
     offset_file.close();
-    book_names.close();
 }
 
 void index_builder::to_file() const {
     index_to_file();
-    books_to_file();
 }
 } // namespace library

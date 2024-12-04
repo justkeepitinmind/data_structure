@@ -1,9 +1,9 @@
 #!/bin/bash
 
-rm -rf build
+# rm -rf build
 
-mkdir build
-cd build
+mkdir build1
+cd build1
 
 cmake  ..
 make

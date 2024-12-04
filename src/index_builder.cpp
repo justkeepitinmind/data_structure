@@ -105,7 +105,7 @@ void index_builder::news_offset_to_file(const std::string& news_path) const {
     }
     std::string line;
     while (news_file.good()) {
-        write_integer<u32>(offset_file, news_file.tellg());
+        write_integer<u64>(offset_file, news_file.tellg());
         std::getline(news_file, line);
     }
 

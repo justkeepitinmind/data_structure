@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 using namespace library;
+
 void print_news(const ptree& data) {
     std::cout << "Title : " << data.get<std::string>("title") << '\n';
     std::cout << "time : " << data.get<std::string>("time") << '\n';
@@ -12,8 +13,8 @@ void print_news(const ptree& data) {
 
 int main(int argc, char* argv[]) {
     if (argc == 1) {
-        std::cout << "please input the idx of the news like\n ./get_news 4\n";
-        return 0;
+        std::cout << "please input the idx of the news like\n ./get_news [idx]\n";
+        return 1;
     }
     std::ifstream news_path_file(NEWS_PATH_FILE_PATH);
     news_path_file >> news_path;

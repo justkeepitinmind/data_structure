@@ -98,8 +98,8 @@ std::vector<index_t> query_word(const std::string& word) {
 
 ptree get_news(u32 idx) {
     std::ifstream offset_file(NEWS_OFFSET_PATH, std::ios::binary);
-    offset_file.seekg(4 * idx, std::ios::beg);
-    u32 offset;
+    offset_file.seekg(8 * idx, std::ios::beg);
+    u64 offset;
     offset_file.read(reinterpret_cast<char*>(&offset), sizeof(offset));
     std::ifstream news_file(news_path);
     if (!news_file.is_open()) {

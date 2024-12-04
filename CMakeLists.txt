@@ -38,3 +38,10 @@ set(GET_NEWS_SOURCES
 
 add_executable(get_news ${GET_NEWS_SOURCES})
 
+
+set(TEST_SOURCES
+    src/performance_test.cpp
+    src/util.cpp
+)
+
+add_executable(performance_test ${TEST_SOURCES})

@@ -65,7 +65,7 @@ vector<T> op_work(const vector<T>& a, const vector<T>& b, const OP op) {
         return SET_AND(a, b);
     else if (op == OR)
         return SET_OR(a, b);
-    else if (OP == SUB)
+    else if (op == SUB)
         return SET_SUB(a, b);
     std::cerr << "unknown operator" << '\n';
     return {};
@@ -129,7 +129,7 @@ vector<index_t> query(const string& s) {
                 i += 2;
             else
                 i += 1;
-            while (op_st.size() && (op_st.top() == AND || op_st.top() == SUB)) {
+            while (op_st.size() && op_st.top() == AND) {
                 if (!pop_and_func()) {
                     return {};
                 };
@@ -140,6 +140,11 @@ vector<index_t> query(const string& s) {
                 i += 3;
             else
                 i += 1;
+            while (op_st.size() && op_st.top() == AND) {
+                if (!pop_and_func()) {
+                    return {};
+                };
+            }
             op_st.push(SUB);
         } else {
             int j = i + 1;

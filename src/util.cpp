@@ -95,7 +95,7 @@ std::vector<index_t> query_word(const std::string& word) {
     offset += sizeof(u32) + length;
     return get_index_by_offset(offset);
 }
-
+// 查询特定 id
 ptree get_news(u32 idx) {
     std::ifstream offset_file(NEWS_OFFSET_PATH, std::ios::binary);
     offset_file.seekg(8 * idx, std::ios::beg);

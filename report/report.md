@@ -16,6 +16,9 @@
 
 ## 实验思路
 
+代码结构:包含直接下载下来的cppjieba库 包含自己实现的包含各种辅助函数的 util.hpp 和 util.cpp,包含计算表达式的头文件grammar.hpp,包含构建索引的一个类 index-builder
+包含三个最终生成可执行文件的 bulld_index,search_index,get_news,分别用来:建立索引,查找符合输入bool表达式的新闻id,输出对应id的新闻的内容.
+
 ### 数据处理
 
 我们的数据是 json 类型的，我们需要把其中的 content 提提取出来。 
@@ -129,7 +132,7 @@ index_builder::index_builder() : seg(DICT_PATH, HMM_MODEL_PATH), extractor(DICT_
 
 ### 建立索引
 
-我们对每篇文章分完词后，可以直接使用 c++ 自带的 unodered_map 记录每个单词出线在了哪些文章上中
+我们对每篇文章分完词后，可以直接使用 c++ 自带的 unodered_map 记录每个单词出现在了哪些文章上中
 
 ~~~ c++
 using dict = std::unordered_map<std::string, std::vector<index_t>>;
@@ -171,10 +174,9 @@ void index_builder::add_news(const std::string& news_line, index_t idx) {
 
 所以我们可以在 offset 建立一个目录，记录每个单词对应内容在 index 中的偏移量
 
-
 但其实目录的大小依然很大，这依然是一个时间上的瓶颈
 
-![alt text](image-3.png)
+经过测试,在9G的语料中关键词提取可能会产生200万的单词
 
 我们优化，我们首先利用 hash 让目录变得规整。
 
@@ -184,6 +186,9 @@ void index_builder::add_news(const std::string& news_line, index_t idx) {
 这样目录文件的结构类似于一个数组。问题就变成了在数组里面查找元素。
 
 而在数组里面查找数据很简单的思路就是先将数组排序，再二分查找。
+
+![alt text](image-3.png)
+
 
 ~~~ c++
 const u64 BASE = 1331;
@@ -312,12 +317,11 @@ std::vector<index_t> get_index_by_offset(u64 offset) {
 }
 ~~~
 
-现在目录文件的结构类似于一个数组。问题就变成了在数组里面查找元素。
-
-而在数组里面查找数据很简单的思路就是先将数组排序，再二分查找。
 
 ### bool 查询
 
 解析表达式的思路是很简单的，是一个很经典的中缀表达式求值问题
 
 我们只需要把自定义集合的 **and or sub** 这三种不同运算就行了。
+
+

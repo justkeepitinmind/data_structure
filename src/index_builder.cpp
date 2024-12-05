@@ -96,6 +96,7 @@ void index_builder::index_to_file() const {
     index_file.close();
 }
 
+// 建立新闻目录
 void index_builder::news_offset_to_file(const std::string& news_path) const {
     std::ofstream offset_file(NEWS_OFFSET_PATH, std::ios::binary);
     std::ifstream news_file(news_path);

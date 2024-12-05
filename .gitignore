@@ -14,7 +14,6 @@
 **/.vscode/*
 
 text_data
-cppjieba
 src/main
 tags
 tests/googletest
